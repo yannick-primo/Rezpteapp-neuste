@@ -5725,8 +5725,8 @@
         const nq = this.normalizeText(query);
         if (!nq) return true;
         const tokens = nq.split(' ').filter(Boolean);
-        const ingredientNames = this.getRecipeIngredients(recipe).map(i => this.normalizeText(i.name));
         const titleText = this.normalizeText(recipe.title);
+        const ingredientNames = this.getRecipeIngredients(recipe).map(i => this.normalizeText(i.name));
         const cuisineText = this.normalizeText(this.getRecipeCuisine(recipe));
         const categoryText = this.normalizeText(recipe.category);
         // Erweitere um unsichtbare Kategorie-Terme aller Zutaten und der Küche
@@ -5737,8 +5737,12 @@
         this.getCuisineCategoryTerms(this.getRecipeCuisine(recipe)).forEach(t => catTerms.add(t));
         const fullText = [titleText, cuisineText, categoryText, ...ingredientNames, ...catTerms].join(' ');
         const words = fullText.split(' ').filter(Boolean);
+        // Jeder Suchbegriff muss entweder im Rezeptnamen ODER in einer Zutat (oder Küche/Kategorie) enthalten sein.
         return tokens.every(tok => {
-          if (fullText.includes(tok)) return true;
+          if (titleText.includes(tok)) return true;
+          if (ingredientNames.some(n => n.includes(tok))) return true;
+          if (cuisineText.includes(tok) || categoryText.includes(tok)) return true;
+          for (const t of catTerms) { if (t.includes(tok)) return true; }
           return this.fuzzyTokenMatch(tok, words);
         });
       }
