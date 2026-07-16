@@ -5439,7 +5439,7 @@
         if (!t || !this.state.cookMode) return;
         this.state.cookMode.stepIndex = t.stepIndex;
         this._writeCookPersist();
-        this.render();
+        this._updateCookOverlay();
       }
 
       _handleCookSwipe(event) {
