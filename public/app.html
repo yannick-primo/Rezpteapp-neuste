@@ -5079,7 +5079,7 @@
           this.state.cookMode.stepIndex++;
           // Timer läuft schrittübergreifend weiter – NICHT stoppen.
           this._writeCookPersist();
-          this.render();
+          this._updateCookOverlay();
         }
       }
 
@@ -5088,8 +5088,32 @@
         if (this.state.cookMode.stepIndex > 0) {
           this.state.cookMode.stepIndex--;
           this._writeCookPersist();
-          this.render();
+          this._updateCookOverlay();
         }
+      }
+
+      // Aktualisiert nur die Kochmodus-Overlay-DOM-Struktur, ohne die gesamte
+      // App neu zu rendern. Verhindert Bildschirmflackern und Bild-Reloads
+      // beim Wechsel zwischen Schritten. Timer/Event-Listener bleiben intakt,
+      // da die restliche App-DOM unverändert bleibt.
+      _updateCookOverlay() {
+        const root = document.getElementById('root');
+        if (!root) return;
+        const overlay = root.querySelector('.cook-overlay');
+        const html = this.renderCookMode();
+        if (!overlay) {
+          // Overlay nicht vorhanden (z.B. minimiert oder gerade erst geöffnet) → vollständiges Rendern.
+          this.render();
+          return;
+        }
+        if (!html) {
+          overlay.remove();
+          return;
+        }
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const fresh = tmp.querySelector('.cook-overlay');
+        if (fresh) overlay.replaceWith(fresh);
       }
 
       extractTimerFromStep(text) {
